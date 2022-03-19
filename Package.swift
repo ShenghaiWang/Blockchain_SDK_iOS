@@ -7,9 +7,14 @@ let package = Package(
     name: "BlockChain_SDK_iOS",
     platforms: [.macOS(.v12), .iOS(.v13)],
     products: [.library(name: "BlockChain_SDK_iOS", targets: ["BlockChain_SDK_iOS"])],
-    dependencies: [],
+    dependencies: [
+        .package(url: "https://github.com/daltoniam/Starscream.git", .upToNextMajor(from: "4.0.0"))
+    ],
     targets: [
-        .target(name: "BlockChain_SDK_iOS", dependencies: []),
+        .target(name: "BlockChain_SDK_iOS",
+                dependencies: [
+                    .product(name: "Starscream", package: "Starscream")
+                ]),
         .testTarget(name: "BlockChain_SDK_iOSTests", dependencies: ["BlockChain_SDK_iOS"]),
     ]
 )

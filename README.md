@@ -10,14 +10,67 @@ The code is in Swift and generated based on the `OpenRPC specifications`.
 
     import BlockChain_SDK_iOS
         
-### Set endpoints
+### Configure endpoint
 
-    Eth.baseURL = URL(string: "https://eth-mainnet.alchemyapi.io/v2/...")!
+#### HTTP
 
-### Call the method
+    let configuration = Eth.Configuration(rpcConfiguration: .init(baseURL: URL(string: "https://eth-mainnet.alchemyapi.io/v2/...")!))
+    let eth = try Eth(configuration: configuration)
+    
+#### Web socket
+
+    let config = Eth.Configuration(websocketConfiguration: .init(baseURL: URL(string: "wss://eth-mainnet.alchemyapi.io/v2/...")!))
+    let eth = try Eth(configuration: config)
+
+### Call method & get response
+
+#### HTTP 
+
+##### Via asyn method
 
     let result = try await Eth.eth_getBlockByHash(blockHash: "0x9e3b33ba48d2cec5314886e03bf205ec873e2a1171311d1534eaba6fbbcbe303", hydratedTransactions: true)
-    print(result)
+
+##### Via combine subscription
+    
+    try eth.eth_getBlockByHash(blockHash: "0xfa4f674587a6f836de096f12b0f9612d4d2fa7f7f6c94db3acc06dbda8ff61cc",
+                               hydratedTransactions: true)
+    .sink { completion in
+        print(completion)
+    } receiveValue: { value in
+        print(value)
+    }.store(in: &cancellables)
+
+#### Web socket
+
+##### Connect
+
+    eth.connectWebSocket()
+
+##### Monitor connection status
+
+    eth.webSocketStatusPublisher
+        .receive(on: RunLoop.main)
+        .sink { value in
+            print(value)
+        }.store(in: &cancellables)
+
+##### Send out request
+
+    try eth.eth_getBlockByHash(blockHash: "0xfa4f674587a6f836de096f12b0f9612d4d2fa7f7f6c94db3acc06dbda8ff61cc",
+                               hydratedTransactions: true,
+                               id: 1)
+                               
+##### Monitor response
+
+    eth.webSocketResultPublisher
+    .sink { value in
+        print(value)
+    }.store(in: &cancellables)
+
+##### Disconnect
+
+    eth.disconnectWebSocket()
+
 
 ## Requirements
 
@@ -32,6 +85,5 @@ Use the url of this repo (https://github.com/ShenghaiWang/BlockChain_SDK_iOS.git
 
 ## Request support for more chain types
 
-If you want to access more chains, please send a pull request with the `OpenRPC specification` file. 
-We will generate the coresponding code ASAP.
+Eth supports all the chains that are compatible with Etherum. If you want to access more chains that have different specifications, please send a pull request with the `OpenRPC specification` files. We will generate the coresponding code ASAP.
 
