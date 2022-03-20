@@ -229,6 +229,29 @@ public final class Eth {
         }
     }
 
+    public enum EIP1559TransactionEIP2930TransactionLegacyTransaction: Codable {
+        case eIP1559Transaction(value: EIP1559Transaction)
+        case eIP2930Transaction(value: EIP2930Transaction)
+        case legacyTransaction(value: LegacyTransaction)
+
+        public func encode(to encoder: Encoder) throws {
+            var container = encoder.singleValueContainer()
+            switch self {
+            case .eIP1559Transaction(let value): try container.encode(value)
+            case .eIP2930Transaction(let value): try container.encode(value)
+            case .legacyTransaction(let value): try container.encode(value)
+            }
+        }
+
+        public init(from decoder: Decoder) throws {
+            let values = try decoder.singleValueContainer()
+            if let value = try? values.decode(EIP1559Transaction.self) { self = .eIP1559Transaction(value: value); return }
+            if let value = try? values.decode(EIP2930Transaction.self) { self = .eIP2930Transaction(value: value); return }
+            if let value = try? values.decode(LegacyTransaction.self) { self = .legacyTransaction(value: value); return }
+            throw SDKError.resultDataError(data: values, typeName: "EIP1559TransactionEIP2930TransactionLegacyTransaction")
+        }
+    }
+
     public enum SyncingProgressNotSyncing: Codable {
         case syncingProgress(value: SyncingProgress)
         case notSyncing(value: Bool)
@@ -249,23 +272,25 @@ public final class Eth {
         }
     }
 
-    public enum AddressAddresses: Codable {
-        case address(value: String)
-        case addresses(value: [String])
+    public enum AnyTopicMatchSingleTopicMatchMultipleTopicMatch: Codable {
+        case anyTopicMatch
+        case singleTopicMatch(value: String)
+        case multipleTopicMatch(value: [String])
 
         public func encode(to encoder: Encoder) throws {
             var container = encoder.singleValueContainer()
             switch self {
-            case .address(let value): try container.encode(value)
-            case .addresses(let value): try container.encode(value)
+            case .anyTopicMatch: try container.encodeNil()
+            case .singleTopicMatch(let value): try container.encode(value)
+            case .multipleTopicMatch(let value): try container.encode(value)
             }
         }
 
         public init(from decoder: Decoder) throws {
             let values = try decoder.singleValueContainer()
-            if let value = try? values.decode(String.self) { self = .address(value: value); return }
-            if let value = try? values.decode([String].self) { self = .addresses(value: value); return }
-            throw SDKError.resultDataError(data: values, typeName: "AddressAddresses")
+            if let value = try? values.decode(String.self) { self = .singleTopicMatch(value: value); return }
+            if let value = try? values.decode([String].self) { self = .multipleTopicMatch(value: value); return }
+            self = .anyTopicMatch; return
         }
     }
 
@@ -312,6 +337,46 @@ public final class Eth {
         }
     }
 
+    public enum TransactionHashesFullTransactions: Codable {
+        case transactionHashes(value: [String])
+        case fullTransactions(value: [Signed1559TransactionSigned2930TransactionSignedLegacyTransaction])
+
+        public func encode(to encoder: Encoder) throws {
+            var container = encoder.singleValueContainer()
+            switch self {
+            case .transactionHashes(let value): try container.encode(value)
+            case .fullTransactions(let value): try container.encode(value)
+            }
+        }
+
+        public init(from decoder: Decoder) throws {
+            let values = try decoder.singleValueContainer()
+            if let value = try? values.decode([String].self) { self = .transactionHashes(value: value); return }
+            if let value = try? values.decode([Signed1559TransactionSigned2930TransactionSignedLegacyTransaction].self) { self = .fullTransactions(value: value); return }
+            throw SDKError.resultDataError(data: values, typeName: "TransactionHashesFullTransactions")
+        }
+    }
+
+    public enum AddressAddresses: Codable {
+        case address(value: String)
+        case addresses(value: [String])
+
+        public func encode(to encoder: Encoder) throws {
+            var container = encoder.singleValueContainer()
+            switch self {
+            case .address(let value): try container.encode(value)
+            case .addresses(let value): try container.encode(value)
+            }
+        }
+
+        public init(from decoder: Decoder) throws {
+            let values = try decoder.singleValueContainer()
+            if let value = try? values.decode(String.self) { self = .address(value: value); return }
+            if let value = try? values.decode([String].self) { self = .addresses(value: value); return }
+            throw SDKError.resultDataError(data: values, typeName: "AddressAddresses")
+        }
+    }
+
     public enum NewBlockHashesnewTransactionHashesnewLogs: Codable {
         case newBlockHashes(value: [String])
         case newTransactionHashes(value: [String])
@@ -335,90 +400,39 @@ public final class Eth {
         }
     }
 
-    public enum EIP1559TransactionEIP2930TransactionLegacyTransaction: Codable {
-        case eIP1559Transaction(value: EIP1559Transaction)
-        case eIP2930Transaction(value: EIP2930Transaction)
-        case legacyTransaction(value: LegacyTransaction)
-
-        public func encode(to encoder: Encoder) throws {
-            var container = encoder.singleValueContainer()
-            switch self {
-            case .eIP1559Transaction(let value): try container.encode(value)
-            case .eIP2930Transaction(let value): try container.encode(value)
-            case .legacyTransaction(let value): try container.encode(value)
-            }
-        }
-
-        public init(from decoder: Decoder) throws {
-            let values = try decoder.singleValueContainer()
-            if let value = try? values.decode(EIP1559Transaction.self) { self = .eIP1559Transaction(value: value); return }
-            if let value = try? values.decode(EIP2930Transaction.self) { self = .eIP2930Transaction(value: value); return }
-            if let value = try? values.decode(LegacyTransaction.self) { self = .legacyTransaction(value: value); return }
-            throw SDKError.resultDataError(data: values, typeName: "EIP1559TransactionEIP2930TransactionLegacyTransaction")
-        }
-    }
-
-    public enum TransactionHashesFullTransactions: Codable {
-        case transactionHashes(value: [String])
-        case fullTransactions(value: [Signed1559TransactionSigned2930TransactionSignedLegacyTransaction])
-
-        public func encode(to encoder: Encoder) throws {
-            var container = encoder.singleValueContainer()
-            switch self {
-            case .transactionHashes(let value): try container.encode(value)
-            case .fullTransactions(let value): try container.encode(value)
-            }
-        }
-
-        public init(from decoder: Decoder) throws {
-            let values = try decoder.singleValueContainer()
-            if let value = try? values.decode([String].self) { self = .transactionHashes(value: value); return }
-            if let value = try? values.decode([Signed1559TransactionSigned2930TransactionSignedLegacyTransaction].self) { self = .fullTransactions(value: value); return }
-            throw SDKError.resultDataError(data: values, typeName: "TransactionHashesFullTransactions")
-        }
-    }
-
-    public enum AnyTopicMatchSingleTopicMatchMultipleTopicMatch: Codable {
-        case anyTopicMatch
-        case singleTopicMatch(value: String)
-        case multipleTopicMatch(value: [String])
-
-        public func encode(to encoder: Encoder) throws {
-            var container = encoder.singleValueContainer()
-            switch self {
-            case .anyTopicMatch: try container.encodeNil()
-            case .singleTopicMatch(let value): try container.encode(value)
-            case .multipleTopicMatch(let value): try container.encode(value)
-            }
-        }
-
-        public init(from decoder: Decoder) throws {
-            let values = try decoder.singleValueContainer()
-            if let value = try? values.decode(String.self) { self = .singleTopicMatch(value: value); return }
-            if let value = try? values.decode([String].self) { self = .multipleTopicMatch(value: value); return }
-            self = .anyTopicMatch; return
-        }
+    /// blockNumber: block number
+    /// from: from address
+    /// blockHash: block hash
+    /// hash: transaction hash
+    /// transactionIndex: transaction index
+    public struct TransactionInformation: Codable {
+        public let blockNumber: String
+        public let from: String
+        public let blockHash: String
+        public let hash: String
+        public let transactionIndex: String
+        public let signed1559Transaction: Signed1559Transaction?
+        public let signed2930Transaction: Signed2930Transaction?
+        public let signedLegacyTransaction: SignedLegacyTransaction?
     }
 
     /// to: to address
-    /// chainId: chainId
     /// gas: gas limit
-    /// input: input data
-    /// nonce: nonce
-    /// value: value
-    /// accessList: accessList
-    /// type: type
+    /// chainId: chainId
     /// gasPrice: gas price
-    public struct EIP2930Transaction: Codable {
+    /// input: input data
+    /// value: value
+    /// type: type
+    /// nonce: nonce
+    public struct LegacyTransaction: Codable {
         public let to: String?
-        public let chainId: String
         public let gas: String
-        public let input: String
-        public let nonce: String
-        public let value: String
-        public let accessList: [AccessListEntry]
-        public let type: String
+        public let chainId: String?
         public let gasPrice: String
+        public let input: String
+        public let value: String
+        public let type: String
+        public let nonce: String
     }
 
     /// from: from
@@ -429,274 +443,260 @@ public final class Eth {
         public let legacyTransaction: LegacyTransaction?
     }
 
+    /// topics: topics
+    /// blockHash: block hash
+    /// removed: removed
+    /// transactionHash: transaction hash
+    /// transactionIndex: transaction index
+    /// address: address
+    /// blockNumber: block number
+    /// data: data
+    /// logIndex: log index
+    public struct Log: Codable {
+        public let topics: [String]?
+        public let blockHash: String?
+        public let removed: Bool?
+        public let transactionHash: String?
+        public let transactionIndex: String?
+        public let address: String?
+        public let blockNumber: String?
+        public let data: String?
+        public let logIndex: String?
+    }
+
+    /// type: type
+    /// input: input data
+    /// nonce: nonce
+    /// to: to address
+    /// gasPrice: gas price
+    /// chainId: chainId
+    /// r: r
+    /// accessList: accessList
+    /// value: value
+    /// gas: gas limit
+    /// yParity: yParity
+    /// s: s
+    public struct Signed2930Transaction: Codable {
+        public let type: String
+        public let input: String
+        public let nonce: String
+        public let to: String?
+        public let gasPrice: String
+        public let chainId: String
+        public let r: String
+        public let accessList: [AccessListEntry]
+        public let value: String
+        public let gas: String
+        public let yParity: String
+        public let s: String
+    }
+
+    /// s: s
+    /// value: value
+    /// chainId: chainId
+    /// nonce: nonce
+    /// type: type
+    /// input: input data
+    /// gasPrice: gas price
+    /// v: v
+    /// gas: gas limit
+    /// to: to address
+    /// r: r
+    public struct SignedLegacyTransaction: Codable {
+        public let s: String
+        public let value: String
+        public let chainId: String?
+        public let nonce: String
+        public let type: String
+        public let input: String
+        public let gasPrice: String
+        public let v: String
+        public let gas: String
+        public let to: String?
+        public let r: String
+    }
+
+    /// transactions:
+    /// timestamp: Timestamp
+    /// nonce: Nonce
+    /// totalDifficulty: Total difficult
+    /// size: Block size
+    /// sha3Uncles: Ommers hash
+    /// baseFeePerGas: Base fee per gas
+    /// uncles: Uncles
+    /// difficulty: Difficulty
+    /// stateRoot: State root
+    /// gasLimit: Gas limit
+    /// number: Number
+    /// parentHash: Parent block hash
+    /// extraData: Extra data
+    /// logsBloom: Bloom filter
+    /// receiptsRoot: Receipts root
+    /// transactionsRoot: Transactions root
+    /// gasUsed: Gas used
+    /// mixHash: Mix hash
+    /// miner: Coinbase
+    public struct BlockObject: Codable {
+        public let transactions: TransactionHashesFullTransactions
+        public let timestamp: String
+        public let nonce: String
+        public let totalDifficulty: String
+        public let size: String
+        public let sha3Uncles: String
+        public let baseFeePerGas: String?
+        public let uncles: [String]
+        public let difficulty: String?
+        public let stateRoot: String
+        public let gasLimit: String
+        public let number: String
+        public let parentHash: String
+        public let extraData: String
+        public let logsBloom: String
+        public let receiptsRoot: String
+        public let transactionsRoot: String
+        public let gasUsed: String
+        public let mixHash: String
+        public let miner: String
+    }
+
+    /// type: type
+    /// value: value
+    /// gasPrice: gas price
+    /// to: to address
+    /// gas: gas limit
+    /// input: input data
+    /// accessList: accessList
+    /// chainId: chainId
+    /// nonce: nonce
+    public struct EIP2930Transaction: Codable {
+        public let type: String
+        public let value: String
+        public let gasPrice: String
+        public let to: String?
+        public let gas: String
+        public let input: String
+        public let accessList: [AccessListEntry]
+        public let chainId: String
+        public let nonce: String
+    }
+
+    /// address: Address(es)
+    /// toBlock: to block
+    /// topics: Topics
+    /// fromBlock: from block
+    public struct Filter: Codable {
+        public let address: AddressAddresses?
+        public let toBlock: String?
+        public let topics: [AnyTopicMatchSingleTopicMatchMultipleTopicMatch]?
+        public let fromBlock: String?
+    }
+
+    /// type: type
+    /// maxFeePerGas: max fee per gas
+    /// to: to address
+    /// value: value
+    /// chainId: chainId
+    /// nonce: nonce
+    /// input: input data
+    /// maxPriorityFeePerGas: max priority fee per gas
+    /// accessList: accessList
+    /// gas: gas limit
+    public struct EIP1559Transaction: Codable {
+        public let type: String
+        public let maxFeePerGas: String
+        public let to: String?
+        public let value: String
+        public let chainId: String
+        public let nonce: String
+        public let input: String
+        public let maxPriorityFeePerGas: String
+        public let accessList: [AccessListEntry]
+        public let gas: String
+    }
+
+    /// maxPriorityFeePerGas: max priority fee per gas
+    /// nonce: nonce
+    /// chainId: chainId
+    /// accessList: accessList
+    /// maxFeePerGas: max fee per gas
+    /// s: s
+    /// type: type
+    /// gas: gas limit
+    /// yParity: yParity
+    /// to: to address
+    /// input: input data
+    /// value: value
+    /// r: r
+    public struct Signed1559Transaction: Codable {
+        public let maxPriorityFeePerGas: String
+        public let nonce: String
+        public let chainId: String
+        public let accessList: [AccessListEntry]
+        public let maxFeePerGas: String
+        public let s: String
+        public let type: String
+        public let gas: String
+        public let yParity: String
+        public let to: String?
+        public let input: String
+        public let value: String
+        public let r: String
+    }
+
+    /// startingBlock: Starting block
+    /// currentBlock: Current block
+    /// highestBlock: Highest block
+    public struct SyncingProgress: Codable {
+        public let startingBlock: String?
+        public let currentBlock: String?
+        public let highestBlock: String?
+    }
+
+    /// blockHash: block hash
+    /// transactionIndex: transaction index
+    /// from: from
+    /// gasUsed: gas used
+    /// root: state root
+    /// cumulativeGasUsed: cumulative gas used
+    /// logsBloom: logs bloom
+    /// contractAddress: contract address
+    /// logs: logs
+    /// transactionHash: transaction hash
+    /// to: to
+    /// blockNumber: block number
+    /// status: status
+    /// effectiveGasPrice: effective gas price
+    public struct ReceiptInfo: Codable {
+        public let blockHash: String
+        public let transactionIndex: String
+        public let from: String
+        public let gasUsed: String
+        public let root: String?
+        public let cumulativeGasUsed: String
+        public let logsBloom: String
+        public let contractAddress: String?
+        public let logs: [Log]
+        public let transactionHash: String
+        public let to: String?
+        public let blockNumber: String
+        public let status: String?
+        public let effectiveGasPrice: String
+    }
+
+    /// oldestBlock: oldestBlock
+    /// reward: rewardArray
+    /// baseFeePerGas: baseFeePerGasArray
+    public struct FeeHistoryResults: Codable {
+        public let oldestBlock: String?
+        public let reward: [[String]]?
+        public let baseFeePerGas: [String]
+    }
+
     /// address: hex encoded address
     /// storageKeys:
     public struct AccessListEntry: Codable {
         public let address: String?
         public let storageKeys: [String]?
-    }
-
-    /// gasPrice: gas price
-    /// gas: gas limit
-    /// s: s
-    /// nonce: nonce
-    /// r: r
-    /// to: to address
-    /// accessList: accessList
-    /// yParity: yParity
-    /// type: type
-    /// value: value
-    /// chainId: chainId
-    /// input: input data
-    public struct Signed2930Transaction: Codable {
-        public let gasPrice: String
-        public let gas: String
-        public let s: String
-        public let nonce: String
-        public let r: String
-        public let to: String?
-        public let accessList: [AccessListEntry]
-        public let yParity: String
-        public let type: String
-        public let value: String
-        public let chainId: String
-        public let input: String
-    }
-
-    /// startingBlock: Starting block
-    /// highestBlock: Highest block
-    /// currentBlock: Current block
-    public struct SyncingProgress: Codable {
-        public let startingBlock: String?
-        public let highestBlock: String?
-        public let currentBlock: String?
-    }
-
-    /// to: to address
-    /// input: input data
-    /// nonce: nonce
-    /// type: type
-    /// gasPrice: gas price
-    /// value: value
-    /// s: s
-    /// chainId: chainId
-    /// r: r
-    /// gas: gas limit
-    /// v: v
-    public struct SignedLegacyTransaction: Codable {
-        public let to: String?
-        public let input: String
-        public let nonce: String
-        public let type: String
-        public let gasPrice: String
-        public let value: String
-        public let s: String
-        public let chainId: String?
-        public let r: String
-        public let gas: String
-        public let v: String
-    }
-
-    /// gas: gas limit
-    /// value: value
-    /// s: s
-    /// yParity: yParity
-    /// maxFeePerGas: max fee per gas
-    /// to: to address
-    /// input: input data
-    /// accessList: accessList
-    /// r: r
-    /// chainId: chainId
-    /// type: type
-    /// maxPriorityFeePerGas: max priority fee per gas
-    /// nonce: nonce
-    public struct Signed1559Transaction: Codable {
-        public let gas: String
-        public let value: String
-        public let s: String
-        public let yParity: String
-        public let maxFeePerGas: String
-        public let to: String?
-        public let input: String
-        public let accessList: [AccessListEntry]
-        public let r: String
-        public let chainId: String
-        public let type: String
-        public let maxPriorityFeePerGas: String
-        public let nonce: String
-    }
-
-    /// accessList: accessList
-    /// nonce: nonce
-    /// maxFeePerGas: max fee per gas
-    /// input: input data
-    /// to: to address
-    /// maxPriorityFeePerGas: max priority fee per gas
-    /// gas: gas limit
-    /// value: value
-    /// type: type
-    /// chainId: chainId
-    public struct EIP1559Transaction: Codable {
-        public let accessList: [AccessListEntry]
-        public let nonce: String
-        public let maxFeePerGas: String
-        public let input: String
-        public let to: String?
-        public let maxPriorityFeePerGas: String
-        public let gas: String
-        public let value: String
-        public let type: String
-        public let chainId: String
-    }
-
-    /// transactionIndex: transaction index
-    /// blockHash: block hash
-    /// from: from address
-    /// hash: transaction hash
-    /// blockNumber: block number
-    public struct TransactionInformation: Codable {
-        public let transactionIndex: String
-        public let blockHash: String
-        public let from: String
-        public let hash: String
-        public let blockNumber: String
-        public let signed1559Transaction: Signed1559Transaction?
-        public let signed2930Transaction: Signed2930Transaction?
-        public let signedLegacyTransaction: SignedLegacyTransaction?
-    }
-
-    /// toBlock: to block
-    /// topics: Topics
-    /// address: Address(es)
-    /// fromBlock: from block
-    public struct Filter: Codable {
-        public let toBlock: String?
-        public let topics: [AnyTopicMatchSingleTopicMatchMultipleTopicMatch]?
-        public let address: AddressAddresses?
-        public let fromBlock: String?
-    }
-
-    /// reward: rewardArray
-    /// baseFeePerGas: baseFeePerGasArray
-    /// oldestBlock: oldestBlock
-    public struct FeeHistoryResults: Codable {
-        public let reward: [[String]]?
-        public let baseFeePerGas: [String]
-        public let oldestBlock: String?
-    }
-
-    /// number: Number
-    /// mixHash: Mix hash
-    /// baseFeePerGas: Base fee per gas
-    /// size: Block size
-    /// extraData: Extra data
-    /// gasLimit: Gas limit
-    /// gasUsed: Gas used
-    /// transactions:
-    /// totalDifficulty: Total difficult
-    /// nonce: Nonce
-    /// transactionsRoot: Transactions root
-    /// miner: Coinbase
-    /// logsBloom: Bloom filter
-    /// timestamp: Timestamp
-    /// uncles: Uncles
-    /// stateRoot: State root
-    /// parentHash: Parent block hash
-    /// difficulty: Difficulty
-    /// receiptsRoot: Receipts root
-    /// sha3Uncles: Ommers hash
-    public struct BlockObject: Codable {
-        public let number: String
-        public let mixHash: String
-        public let baseFeePerGas: String?
-        public let size: String
-        public let extraData: String
-        public let gasLimit: String
-        public let gasUsed: String
-        public let transactions: TransactionHashesFullTransactions
-        public let totalDifficulty: String
-        public let nonce: String
-        public let transactionsRoot: String
-        public let miner: String
-        public let logsBloom: String
-        public let timestamp: String
-        public let uncles: [String]
-        public let stateRoot: String
-        public let parentHash: String
-        public let difficulty: String?
-        public let receiptsRoot: String
-        public let sha3Uncles: String
-    }
-
-    /// value: value
-    /// input: input data
-    /// nonce: nonce
-    /// gasPrice: gas price
-    /// type: type
-    /// chainId: chainId
-    /// gas: gas limit
-    /// to: to address
-    public struct LegacyTransaction: Codable {
-        public let value: String
-        public let input: String
-        public let nonce: String
-        public let gasPrice: String
-        public let type: String
-        public let chainId: String?
-        public let gas: String
-        public let to: String?
-    }
-
-    /// logIndex: log index
-    /// transactionHash: transaction hash
-    /// topics: topics
-    /// blockHash: block hash
-    /// blockNumber: block number
-    /// transactionIndex: transaction index
-    /// removed: removed
-    /// address: address
-    /// data: data
-    public struct Log: Codable {
-        public let logIndex: String?
-        public let transactionHash: String?
-        public let topics: [String]?
-        public let blockHash: String?
-        public let blockNumber: String?
-        public let transactionIndex: String?
-        public let removed: Bool?
-        public let address: String?
-        public let data: String?
-    }
-
-    /// effectiveGasPrice: effective gas price
-    /// status: status
-    /// root: state root
-    /// logs: logs
-    /// logsBloom: logs bloom
-    /// from: from
-    /// cumulativeGasUsed: cumulative gas used
-    /// transactionIndex: transaction index
-    /// contractAddress: contract address
-    /// to: to
-    /// gasUsed: gas used
-    /// transactionHash: transaction hash
-    /// blockHash: block hash
-    /// blockNumber: block number
-    public struct ReceiptInfo: Codable {
-        public let effectiveGasPrice: String
-        public let status: String?
-        public let root: String?
-        public let logs: [Log]
-        public let logsBloom: String
-        public let from: String
-        public let cumulativeGasUsed: String
-        public let transactionIndex: String
-        public let contractAddress: String?
-        public let to: String?
-        public let gasUsed: String
-        public let transactionHash: String
-        public let blockHash: String
-        public let blockNumber: String
     }
 
 
@@ -766,17 +766,29 @@ public final class Eth {
             if let result: [String] = try? decode(from: data) {
                 webSocketResultSubject.send((id: id, result: result))
             }
+            if let result: String = try? decode(from: data) {
+                webSocketResultSubject.send((id: id, result: [result]))
+            }
         case .eth_getBlockTransactionCountByNumber:
             if let result: [String] = try? decode(from: data) {
                 webSocketResultSubject.send((id: id, result: result))
+            }
+            if let result: String = try? decode(from: data) {
+                webSocketResultSubject.send((id: id, result: [result]))
             }
         case .eth_getUncleCountByBlockHash:
             if let result: [String] = try? decode(from: data) {
                 webSocketResultSubject.send((id: id, result: result))
             }
+            if let result: String = try? decode(from: data) {
+                webSocketResultSubject.send((id: id, result: [result]))
+            }
         case .eth_getUncleCountByBlockNumber:
             if let result: [String] = try? decode(from: data) {
                 webSocketResultSubject.send((id: id, result: result))
+            }
+            if let result: String = try? decode(from: data) {
+                webSocketResultSubject.send((id: id, result: [result]))
             }
         case .eth_protocolVersion:
             if let result: String = try? decode(from: data) {
@@ -797,6 +809,9 @@ public final class Eth {
         case .eth_accounts:
             if let result: [String] = try? decode(from: data) {
                 webSocketResultSubject.send((id: id, result: result))
+            }
+            if let result: String = try? decode(from: data) {
+                webSocketResultSubject.send((id: id, result: [result]))
             }
         case .eth_blockNumber:
             if let result: String = try? decode(from: data) {
@@ -881,6 +896,9 @@ public final class Eth {
         case .eth_getTransactionCount:
             if let result: [String] = try? decode(from: data) {
                 webSocketResultSubject.send((id: id, result: result))
+            }
+            if let result: String = try? decode(from: data) {
+                webSocketResultSubject.send((id: id, result: [result]))
             }
         case .eth_getCode:
             if let result: String = try? decode(from: data) {
@@ -1012,7 +1030,12 @@ public final class Eth {
             if let blockHash = blockHash { try encoder.encode(blockHash) }
         }
         let (data, _) = try await urlSession.data(for: try request(for: JSONEncoder().encode(requestBody)))
-        return try decode(from: data)
+        if let result: [String] = try? decode(from: data) {
+            return result
+        } else if let result: String = try? decode(from: data) {
+            return [result]
+        }
+        return nil
     }
 
     /// Summary: Returns the number of transactions in a block from a block matching the given block hash.
@@ -1026,7 +1049,10 @@ public final class Eth {
         }
         return urlSession.dataTaskPublisher(for: try request(for: try JSONEncoder().encode(requestBody)))
             .tryMap {[weak self] in
-                try self?.decode(from: $0.data)
+                if let result: String = try? self?.decode(from: $0.data) {
+                    return [result]
+                }
+                return try self?.decode(from: $0.data)
             }.eraseToAnyPublisher()
     }
 
@@ -1053,7 +1079,12 @@ public final class Eth {
             if let blockNumber = blockNumber { try encoder.encode(blockNumber) }
         }
         let (data, _) = try await urlSession.data(for: try request(for: JSONEncoder().encode(requestBody)))
-        return try decode(from: data)
+        if let result: [String] = try? decode(from: data) {
+            return result
+        } else if let result: String = try? decode(from: data) {
+            return [result]
+        }
+        return nil
     }
 
     /// Summary: Returns the number of transactions in a block matching the given block number.
@@ -1067,7 +1098,10 @@ public final class Eth {
         }
         return urlSession.dataTaskPublisher(for: try request(for: try JSONEncoder().encode(requestBody)))
             .tryMap {[weak self] in
-                try self?.decode(from: $0.data)
+                if let result: String = try? self?.decode(from: $0.data) {
+                    return [result]
+                }
+                return try self?.decode(from: $0.data)
             }.eraseToAnyPublisher()
     }
 
@@ -1094,7 +1128,12 @@ public final class Eth {
             if let blockHash = blockHash { try encoder.encode(blockHash) }
         }
         let (data, _) = try await urlSession.data(for: try request(for: JSONEncoder().encode(requestBody)))
-        return try decode(from: data)
+        if let result: [String] = try? decode(from: data) {
+            return result
+        } else if let result: String = try? decode(from: data) {
+            return [result]
+        }
+        return nil
     }
 
     /// Summary: Returns the number of uncles in a block from a block matching the given block hash.
@@ -1108,7 +1147,10 @@ public final class Eth {
         }
         return urlSession.dataTaskPublisher(for: try request(for: try JSONEncoder().encode(requestBody)))
             .tryMap {[weak self] in
-                try self?.decode(from: $0.data)
+                if let result: String = try? self?.decode(from: $0.data) {
+                    return [result]
+                }
+                return try self?.decode(from: $0.data)
             }.eraseToAnyPublisher()
     }
 
@@ -1135,7 +1177,12 @@ public final class Eth {
             if let blockNumber = blockNumber { try encoder.encode(blockNumber) }
         }
         let (data, _) = try await urlSession.data(for: try request(for: JSONEncoder().encode(requestBody)))
-        return try decode(from: data)
+        if let result: [String] = try? decode(from: data) {
+            return result
+        } else if let result: String = try? decode(from: data) {
+            return [result]
+        }
+        return nil
     }
 
     /// Summary: Returns the number of transactions in a block matching the given block number.
@@ -1149,7 +1196,10 @@ public final class Eth {
         }
         return urlSession.dataTaskPublisher(for: try request(for: try JSONEncoder().encode(requestBody)))
             .tryMap {[weak self] in
-                try self?.decode(from: $0.data)
+                if let result: String = try? self?.decode(from: $0.data) {
+                    return [result]
+                }
+                return try self?.decode(from: $0.data)
             }.eraseToAnyPublisher()
     }
 
@@ -1284,7 +1334,12 @@ public final class Eth {
 
         }
         let (data, _) = try await urlSession.data(for: try request(for: JSONEncoder().encode(requestBody)))
-        return try decode(from: data)
+        if let result: [String] = try? decode(from: data) {
+            return result
+        } else if let result: String = try? decode(from: data) {
+            return [result]
+        }
+        return nil
     }
 
     /// Summary: Returns a list of addresses owned by client.
@@ -1294,7 +1349,10 @@ public final class Eth {
         }
         return urlSession.dataTaskPublisher(for: try request(for: try JSONEncoder().encode(requestBody)))
             .tryMap {[weak self] in
-                try self?.decode(from: $0.data)
+                if let result: String = try? self?.decode(from: $0.data) {
+                    return [result]
+                }
+                return try self?.decode(from: $0.data)
             }.eraseToAnyPublisher()
     }
 
@@ -2086,7 +2144,12 @@ public final class Eth {
             try encoder.encode(block)
         }
         let (data, _) = try await urlSession.data(for: try request(for: JSONEncoder().encode(requestBody)))
-        return try decode(from: data)
+        if let result: [String] = try? decode(from: data) {
+            return result
+        } else if let result: String = try? decode(from: data) {
+            return [result]
+        }
+        return nil
     }
 
     /// Summary: Returns the number of transactions sent from an address.
@@ -2101,7 +2164,10 @@ public final class Eth {
         }
         return urlSession.dataTaskPublisher(for: try request(for: try JSONEncoder().encode(requestBody)))
             .tryMap {[weak self] in
-                try self?.decode(from: $0.data)
+                if let result: String = try? self?.decode(from: $0.data) {
+                    return [result]
+                }
+                return try self?.decode(from: $0.data)
             }.eraseToAnyPublisher()
     }
 
@@ -2415,4 +2481,3 @@ public final class Eth {
         socket?.write(data: try JSONEncoder().encode(requestBody))
     }
 }
-

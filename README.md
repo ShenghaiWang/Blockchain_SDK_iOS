@@ -28,7 +28,7 @@ The code is in Swift and generated based on the `OpenRPC specifications`.
 
 ##### Via asyn method
 
-    let result = try await Eth.eth_getBlockByHash(blockHash: "0x9e3b33ba48d2cec5314886e03bf205ec873e2a1171311d1534eaba6fbbcbe303", hydratedTransactions: true)
+    let result = try await eth.eth_getBlockByHash(blockHash: "0x9e3b33ba48d2cec5314886e03bf205ec873e2a1171311d1534eaba6fbbcbe303", hydratedTransactions: true)
 
 ##### Via combine subscription
     
